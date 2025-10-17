@@ -1,0 +1,16 @@
+<bg xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xsi:noNamespaceSchemaLocation='https://raw.githubusercontent.com/RedBrumbler/Quest-BSML-Docs/gh-pages/schema.xsd'>
+
+    <vertical pref-width="50">
+        <horizontal>
+            <dropdown-list-setting id="difficultyDropdown_" text="Difficulty" choices="dropdownOptionsDifficulties_" value="selectedDifficultyString_" bind-value="true" apply-on-change="true" on-change="onFilterChanged"/>
+        </horizontal>
+
+        <vertical flex-height="100">
+            <!-- Dummy -->
+        </vertical>
+    </vertical>
+
+
+
+</bg>

@@ -1,0 +1,83 @@
+{
+  "$schema": "https://raw.githubusercontent.com/QuestPackageManager/QPM.Package/refs/heads/main/qpm.schema.json",
+  "version": "1.0.0",
+  "sharedDir": "shared",
+  "dependenciesDir": "extern",
+  "info": {
+    "name": "Spotify Search",
+    "id": "spotify-search",
+    "version": "1.0.0",
+    "url": "https://github.com/TychoTheTaco/Beat-Saber-Spotify-Search",
+    "additionalData": {
+      "overrideSoName": "libspotify-search.so",
+      "cmake": true
+    }
+  },
+  "workspace": {
+    "qmodIncludeDirs": [
+      "./build",
+      "./extern/libs"
+    ],
+    "qmodIncludeFiles": [],
+    "qmodOutput": "./Spotify Search.qmod"
+  },
+  "dependencies": [
+    {
+      "id": "beatsaber-hook",
+      "versionRange": "^6.4.2",
+      "additionalData": {}
+    },
+    {
+      "id": "scotland2",
+      "versionRange": "^0.1.4",
+      "additionalData": {
+        "includeQmod": false
+      }
+    },
+    {
+      "id": "bs-cordl",
+      "versionRange": "^4008.0.0",
+      "additionalData": {}
+    },
+    {
+      "id": "paper2_scotland2",
+      "versionRange": "^4.6.4",
+      "additionalData": {}
+    },
+    {
+      "id": "bsml",
+      "versionRange": "^0.4.55",
+      "additionalData": {}
+    },
+    {
+      "id": "custom-types",
+      "versionRange": "^0.18.3",
+      "additionalData": {}
+    },
+    {
+      "id": "kaleb",
+      "versionRange": "^0.1.9",
+      "additionalData": {}
+    },
+    {
+      "id": "web-utils",
+      "versionRange": "^0.6.7",
+      "additionalData": {}
+    },
+    {
+      "id": "song-details",
+      "versionRange": "^1.0.3",
+      "additionalData": {}
+    },
+    {
+      "id": "beatsaverplusplus",
+      "versionRange": "^0.2.1",
+      "additionalData": {}
+    },
+    {
+      "id": "songcore",
+      "versionRange": "^1.1.24",
+      "additionalData": {}
+    }
+  ]
+}

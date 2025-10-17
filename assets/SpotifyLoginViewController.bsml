@@ -1,0 +1,46 @@
+<vertical xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xsi:noNamespaceSchemaLocation='https://raw.githubusercontent.com/RedBrumbler/Quest-BSML-Docs/gh-pages/schema.xsd' horizontal-fit="Unconstrained" pad-left="32" pad-right="32">
+
+    <vertical pad-bottom="2" horizontal-fit="Unconstrained">
+        <text font-size="3" text="Welcome to Spotify Search. First, enter the details of your Spotify app (these can be found on the Spotify Developer Portal). Then, login with your Spotify account. This will only be needed the first time the mod is installed."/>
+    </vertical>
+
+    <vertical vertical-fit="PreferredSize" horizontal-fit="Unconstrained" spacing="-1">
+        <text font-size="3.5" text="Client ID"/>
+        <horizontal>
+            <text-field id="clientIdTextField_" text="Client ID"/>
+            <icon-button id="clientIdPasteButton_" on-click="onPasteClientIdButtonClicked" hover-hint="Paste" icon="#Papercut" pref-width="8" pref-height="8"/>
+        </horizontal>
+    </vertical>
+
+    <vertical vertical-fit="PreferredSize" horizontal-fit="Unconstrained" spacing="-1">
+        <text font-size="3.5" text="Client Secret"/>
+        <horizontal>
+            <text-field id="clientSecretTextField_" text="Client Secret"/>
+            <icon-button id="clientSecretPasteButton_" on-click="onPasteClientSecretButtonClicked" hover-hint="Paste" icon="#HorizontalArrowIcon" pref-width="8" pref-height="8"/>
+        </horizontal>
+    </vertical>
+
+    <modal id="errorMessageModal_" click-off-closes="true">
+        <vertical vertical-fit="PreferredSize" background="round-rect-panel" pad="2">
+            <text id="errorMessageTextView_" text="there are so many aerorsad asda fsdfs f"/>
+            <button interactable="true" on-click="onDismissModalButtonClicked" text="OK"/>
+        </vertical>
+    </modal>
+
+    <vertical vertical-fit="PreferredSize" horizontal-fit="Unconstrained" spacing="-1">
+        <text font-size="3.5" text="Redirect URI"/>
+        <text id="redirectUriTextField_" rich-text="true" word-wrapping="false" font-color="grey"/>
+    </vertical>
+
+    <vertical flex-height="100"/>
+
+    <vertical>
+        <text active="false" id="waitingOnBrowserTextView_" text="Waiting for browser login..."/>
+    </vertical>
+
+    <vertical flex-height="100"/>
+
+    <primary-button id="loginButton_" text="Login" on-click="onLoginButtonClicked"/>
+
+</vertical>

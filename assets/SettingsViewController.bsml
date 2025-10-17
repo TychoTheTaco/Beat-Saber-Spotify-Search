@@ -1,0 +1,38 @@
+<bg xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xsi:noNamespaceSchemaLocation='https://raw.githubusercontent.com/RedBrumbler/Quest-BSML-Docs/gh-pages/schema.xsd'>
+
+    <vertical horizontal-fit="Unconstrained" spacing="2">
+
+        <!-- Spotify Account -->
+        <horizontal spacing="4">
+            <vertical horizontal-fit="Unconstrained">
+                <text text="Spotify Account"/>
+                <horizontal spacing="1">
+                    <!--
+                        TODO: Add profile image
+                        <image id="profileImageView_" preserve-aspect="true" pref-width="8" pref-height="8"/>
+                    -->
+                    <text id="profileTextView_" font-size="3" color="grey"/>
+                    <horizontal flex-width="100"/>
+                </horizontal>
+            </vertical>
+            <button id="loginOrLogoutButton_" on-click="onLoginOrLogoutButtonClicked"/>
+        </horizontal>
+
+        <!-- Image Cache -->
+        <horizontal spacing="4" pad-right="4">
+            <vertical horizontal-fit="Unconstrained">
+                <horizontal>
+                    <text text="Image Cache"/>
+                    <text id="cacheSizeTextView_" color="magenta" font-size="3.5" font-align="Center"/>
+                    <horizontal flex-width="100"/>
+                </horizontal>
+                <text font-size="3" color="grey" text="The Image Cache is used to save images to local storage instead of downloading them every time they are needed."/>
+            </vertical>
+            <button id="clearCacheButton_" text="Clear Cache" on-click="onClearCacheButtonClicked"/>
+        </horizontal>
+
+        <vertical flex-height="100"/>
+    </vertical>
+
+</bg>

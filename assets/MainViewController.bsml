@@ -1,0 +1,130 @@
+<bg xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xsi:noNamespaceSchemaLocation='https://raw.githubusercontent.com/RedBrumbler/Quest-BSML-Docs/gh-pages/schema.xsd'>
+
+    <horizontal child-align="MiddleLeft" vertical-fit="Unconstrained">
+
+        <!-- Spotify playlists and songs -->
+        <vertical horizontal-fit="Unconstrained" pref-width="40">
+
+            <!-- Header -->
+            <horizontal pref-height="6" pad-bottom="2" pad-left="1" pad-top="1" flex-width="1">
+                <icon-button pad="0" id="playlistsMenuButton_" icon="#HorizontalArrowIcon" on-click="onPlaylistsMenuButtonClicked" pref-width="8" pref-height="6"/>
+                <vertical pad-left="1">
+                    <horizontal pref-width="28">
+                        <text id="spotifyColumnTitleTextView_" font-align="Left" word-wrapping="false" font-size="3.5" overflow-mode="Ellipsis"/>
+                    </horizontal>
+                </vertical>
+                <vertical horizontal-fit="Unconstrained" flex-width="100">
+                    <!-- Dummy -->
+                </vertical>
+            </horizontal>
+
+            <vertical flex-height="100" horizontal-fit="Unconstrained">
+
+                <!-- Placeholder content -->
+                <vertical ignore-layout="true" horizontal-fit="Unconstrained">
+
+                    <!-- Loading indicator -->
+                    <horizontal id="spotifyTrackListLoadingIndicatorContainer_" ignore-layout="true">
+                        <loading preserve-aspect="true" pref-height="8"/>
+                    </horizontal>
+
+                    <!-- Error message -->
+                    <vertical id="spotifyListViewErrorContainer_" ignore-layout="true">
+                        <vertical flex-height="100">
+                            <!-- Dummy -->
+                        </vertical>
+                        <image src="#ExclamationMark" pref-width="3" pref-height="3" preserve-aspect="true"/>
+                        <text id="spotifyTrackListErrorMessageTextView_" font-size="3" color="red" align="Center"/>
+                        <button pad-top="2" on-click="onSpotifyTrackListRetryButtonClicked" text="Retry" pref-width="15"/>
+                        <vertical flex-height="100">
+                            <!-- Dummy -->
+                        </vertical>
+                    </vertical>
+
+                    <vertical id="spotifyListViewStatusContainer_" ignore-layout="true">
+                        <text id="spotifyTrackListStatusTextView_" font-size="3" align="Center"/>
+                    </vertical>
+
+                </vertical>
+
+                <vertical horizontal-fit="Unconstrained" pad-right="8" flex-width="0" flex-height="0">
+                    <list active="true" id='spotifyTrackListView_' select-cell='onTrackSelected' show-scrollbar='true' stick-scrolling="true" list-width="12"/>
+                    <list active="false" id='spotifyPlaylistListView_' select-cell='onPlaylistSelected' show-scrollbar='true' stick-scrolling="true" list-width="12"/>
+                </vertical>
+
+                <horizontal pad="0" pad-top="-1" pad-right="8">
+                    <icon-button pad="0" id="randomTrackButton_" icon="#RandomIcon" on-click="onRandomTrackButtonClicked" pref-width="8" pref-height="6" hover-hint="Select a random song from this playlist"/>
+                </horizontal>
+
+            </vertical>
+        </vertical>
+
+        <!-- Search results -->
+        <vertical horizontal-fit="Unconstrained" pref-width="70">
+            <horizontal pref-height="6">
+                <text text='Search Results' align="Left"/>
+                <horizontal pad-right="-4">
+                    <icon-button active="false" pad="0" id="showAllByArtistButton_" icon="#GuestUserIcon" on-click="onShowAllByArtistButtonClicked" pref-width="8" pref-height="6" hover-hint="Show all songs from this artist"/>
+                </horizontal>
+            </horizontal>
+
+            <!-- Main content -->
+            <vertical flex-height="100" horizontal-fit="Unconstrained">
+
+                <!-- Placeholder content -->
+                <vertical ignore-layout="true" horizontal-fit="Unconstrained">
+
+                    <!-- Loading indicator -->
+                    <horizontal id="searchResultsListLoadingIndicatorContainer_" ignore-layout="true">
+                        <loading preserve-aspect="true" pref-height="8"/>
+                    </horizontal>
+
+                    <!-- Error message -->
+                    <vertical id="searchResultsListViewErrorContainer_" ignore-layout="true">
+                        <text id="searchResultsListStatusTextView_" font-size="3" align="Center"/>
+                    </vertical>
+
+                </vertical>
+
+                <!-- List view -->
+                <vertical horizontal-fit="Unconstrained" pad-right="8" flex-width="0" flex-height="0" ignore-layout="true">
+                    <list active="false" id='searchResultsList_' select-cell='onSearchResultSelected' show-scrollbar='true' stick-scrolling="true" list-width="30"/>
+                </vertical>
+
+            </vertical>
+
+        </vertical>
+
+        <vertical horizontal-fit="Unconstrained" pref-width="40" background="round-rect-panel">
+            <vertical vertical-fit="PreferredSize" pad-bottom="1" pref-width="40">
+                <text id="previewSongNameTextView_" align="Center" word-wrapping="false" overflow-mode="Ellipsis"/>
+                <text id="previewSongAuthorTextView_" font-size="3" align="Center" word-wrapping="false" overflow-mode="Ellipsis"/>
+            </vertical>
+            <image id="previewSongImage_" image-color="white" src="UI/Skin/Background" preserve-aspect="true" pref-width="30" pref-height="30"/>
+            <horizontal child-expand-width="true" pad-top="2">
+                <vertical pref-width="20">
+                    <text font-size="3" color='#AAA' text="Uploader" overflow-mode="Truncate" word-wrapping="false" font-align="Right"/>
+                    <text font-size="3" color='#AAA' text="Length" overflow-mode="Truncate" word-wrapping="false" font-align="Right"/>
+                    <text font-size="3" color='#AAA' text="NPS" overflow-mode="Truncate" word-wrapping="false" font-align="Right"/>
+                    <text font-size="3" color='#AAA' text="NJS" overflow-mode="Truncate" word-wrapping="false" font-align="Right"/>
+                </vertical>
+                <vertical pref-width="20">
+                    <text font-size="3" id="previewSongUploaderTextView_" overflow-mode="Truncate" word-wrapping="false"/>
+                    <text font-size="3" id="previewSongLengthTextView_" overflow-mode="Truncate" word-wrapping="false"/>
+                    <text font-size="3" id="previewSongNPSTextView_" overflow-mode="Truncate" word-wrapping="false"/>
+                    <text font-size="3" id="previewSongNJSTextView_" overflow-mode="Truncate" word-wrapping="false"/>
+                </vertical>
+            </horizontal>
+            <vertical vertical-fit="Unconstrained" flex-height="100">
+                <!-- Dummy -->
+            </vertical>
+            <vertical pad="2">
+                <primary-button id="downloadButton_" text="Download" on-click="onDownloadButtonClicked"/>
+                <primary-button id="playButton_" text="Play" on-click="onPlayButtonClicked" active="false"/>
+            </vertical>
+        </vertical>
+
+    </horizontal>
+
+</bg>

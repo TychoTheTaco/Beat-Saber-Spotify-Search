@@ -1,0 +1,19 @@
+# Build output
+build/
+*.qmod
+
+# Python virtual environment
+venv/
+
+# External dependencies
+extern/
+
+# Auto-generated files
+include/Assets.hpp
+
+# Crash dump
+crash.txt
+
+# Log files
+*.log
+logcat.txt
