@@ -23,7 +23,7 @@ bool isSpriteValid(UnityW<UnityEngine::Sprite> sprite) {
     return true;
 }
 
-UnityW<UnityEngine::Sprite> SpriteCache::get(const std::string& key) {
+UnityW<UnityEngine::Sprite> SpriteCache::get(const std::string_view key) {
     const std::string hashedKey = getKeyHash(key);
 
     // Check the memory cache
@@ -56,7 +56,7 @@ UnityW<UnityEngine::Sprite> SpriteCache::get(const std::string& key) {
     return nullptr;
 }
 
-void SpriteCache::add(const std::string& key, UnityW<UnityEngine::Sprite> sprite) {
+void SpriteCache::add(const std::string_view key, UnityW<UnityEngine::Sprite> sprite) {
     const std::string hashedKey = getKeyHash(key);
     memoryCache_[hashedKey] = sprite;
 }
@@ -76,7 +76,7 @@ void SpriteCache::addToDiskCache(const std::string& key, const std::vector<uint8
     }
 }
 
-std::string SpriteCache::getKeyHash(const std::string& key) {
+std::string SpriteCache::getKeyHash(const std::string_view key) {
     const std::size_t hash = std::hash<std::string_view>{}(key);
     return std::format("{:016x}", hash);
 }

@@ -64,8 +64,9 @@
         <vertical horizontal-fit="Unconstrained" pref-width="70">
             <horizontal pref-height="6">
                 <text text='Search Results' align="Left"/>
-                <horizontal pad-right="-4">
+                <horizontal pad-right="-4" child-align="MiddleRight" spacing="3" horizontal-fit="MinSize">
                     <icon-button active="false" pad="0" id="showAllByArtistButton_" icon="#GuestUserIcon" on-click="onShowAllByArtistButtonClicked" pref-width="8" pref-height="6" hover-hint="Show all songs from this artist"/>
+                    <icon-button active="false" pad="0" id="hideDownloadedMapsButton_" on-click="onHideDownloadedMapsButtonClicked" pref-width="8" pref-height="6" hover-hint="Hide downloaded maps"/>
                 </horizontal>
             </horizontal>
 

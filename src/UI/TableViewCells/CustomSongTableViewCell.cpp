@@ -1,9 +1,10 @@
+#include "UI/TableViewCells/CustomSongTableViewCell.hpp"
+
 #include "UnityEngine/GameObject.hpp"
 #include "bsml/shared/BSML-Lite/Creation/Text.hpp"
 #include "songcore/shared/SongCore.hpp"
 
 #include "Log.hpp"
-#include "UI/TableViewCells/CustomSongTableViewCell.hpp"
 #include "Utils.hpp"
 
 using namespace SpotifySearch::UI;

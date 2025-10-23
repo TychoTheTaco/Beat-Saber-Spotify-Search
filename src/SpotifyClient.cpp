@@ -5,6 +5,7 @@
 #include "SpotifyClient.hpp"
 #include "Utils.hpp"
 #include "main.hpp"
+#include "ThreadPool.hpp"
 
 using namespace spotify;
 
@@ -365,37 +366,72 @@ std::vector<spotify::Track> spotify::Client::getLikedSongs(const size_t offset, 
         chunkCount = 1;
     }
 
-    for (size_t i = 0; i < chunkCount; ++i) {
+    auto getResponse = [this](const size_t offset, const size_t limit) -> rapidjson::Document {
         const auto response = WebUtils::Get<WebUtils::JsonResponse>(
             WebUtils::URLOptions(
                 "https://api.spotify.com/v1/me/tracks",
                 WebUtils::URLOptions::QueryMap{
-                    {"offset", std::to_string(offset + (MAX_LIMIT * i))},
-                    {"limit", std::to_string(std::min(limit, MAX_LIMIT))}},
+                    {"offset", std::to_string(offset)},
+                    {"limit", std::to_string(limit)}},
                 WebUtils::URLOptions::HeaderMap{
                     {"Authorization", std::format("Bearer {}", accessToken_)}}));
-        const rapidjson::Document& document = getJsonDocumentFromResponse(response);
 
-        // Get total items in this playlist
-        const size_t total = document["total"].GetUint64();
-        if (limit == 0) {
-            limit = total;
-            chunkCount = (limit + MAX_LIMIT - 1) / MAX_LIMIT;
-        } else {
-            limit = std::min(limit, total);
-        }
+        rapidjson::Document document;
+        document.CopyFrom(getJsonDocumentFromResponse(response), document.GetAllocator());
+        return document;
+    };
 
-        const auto items = document["items"].GetArray();
-        for (rapidjson::SizeType i = 0; i < items.Size(); ++i) {
-            const auto& track = items[i]["track"];
-            try {
-                const Track spotifyTrack = getTrackFromJson(track);
-                resultTracks.push_back(spotifyTrack);
-            } catch (const std::exception& exception) {
-                SpotifySearch::Log.warn("Failed to parse Spotify track: {}", exception.what());
+    SpotifySearch::ThreadPool threadPool;
+
+    std::mutex mutex;
+
+    for (size_t i = 0; i < chunkCount; ++i) {
+
+        if (i == 0) {
+            const rapidjson::Document& document = getResponse(offset + (MAX_LIMIT * i), std::min(limit, MAX_LIMIT));
+
+            // Get total items in this playlist
+            const size_t total = document["total"].GetUint64();
+            if (limit == 0) {
+                limit = total;
+                chunkCount = (limit + MAX_LIMIT - 1) / MAX_LIMIT;
+            } else {
+                limit = std::min(limit, total);
             }
+
+            const auto items = document["items"].GetArray();
+            for (rapidjson::SizeType i = 0; i < items.Size(); ++i) {
+                const auto& track = items[i]["track"];
+                try {
+                    const Track spotifyTrack = getTrackFromJson(track);
+                    resultTracks.push_back(spotifyTrack);
+                } catch (const std::exception& exception) {
+                    SpotifySearch::Log.warn("Failed to parse Spotify track: {}", exception.what());
+                }
+            }
+        } else {
+            auto task = [this, getResponse, offset, i, limit, &mutex, &resultTracks](){
+                SpotifySearch::Log.info("Start task: offset = {} i = {} limit = {}", offset, i, limit);
+                const rapidjson::Document& document = getResponse(offset + (MAX_LIMIT * i), std::min(limit, MAX_LIMIT));
+
+                const auto items = document["items"].GetArray();
+                for (rapidjson::SizeType i = 0; i < items.Size(); ++i) {
+                    const auto& track = items[i]["track"];
+                    try {
+                        const Track spotifyTrack = getTrackFromJson(track);
+                        std::lock_guard lock(mutex);
+                        resultTracks.push_back(spotifyTrack);
+                    } catch (const std::exception& exception) {
+                        SpotifySearch::Log.warn("Failed to parse Spotify track: {}", exception.what());
+                    }
+                }
+            };
+
+            threadPool.submit(task);
         }
     }
+
+    threadPool.wait();
 
     return resultTracks;
 }

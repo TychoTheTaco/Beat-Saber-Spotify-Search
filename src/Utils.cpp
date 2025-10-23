@@ -272,6 +272,12 @@ SongDetailsCache::MapDifficulty getMapDifficultyFromString(const std::string& te
     throw std::runtime_error(std::format("Unknown map difficulty: {}", text));
 }
 
+void removeRaycastFromButtonIcon(UnityW<UnityEngine::UI::Button> button) {
+    auto icon = button->get_transform()->Find("Content/Icon");
+    auto component = icon->get_gameObject()->GetComponent<HMUI::ImageView*>();
+    component->set_raycastTarget(false);
+}
+
 }
 
 void SpotifySearch::Utils::goToLevelSelect(const std::string& songHash) {

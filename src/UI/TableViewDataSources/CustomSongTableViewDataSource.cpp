@@ -15,13 +15,11 @@ HMUI::TableCell* CustomSongTableViewDataSource::CellForIdx(HMUI::TableView* tabl
     if (!tcd) {
         auto tableCell = UnityEngine::GameObject::New_ctor("SpotifySongListTableCell");
         spotifyCell = tableCell->AddComponent<CustomSongTableViewCell*>();
+        spotifyCell->get_gameObject()->AddComponent<HMUI::Touchable*>();
         spotifyCell->set_interactable(true);
 
         spotifyCell->set_reuseIdentifier("CustomSongListTableCellReuseIdentifier");
         BSML::parse_and_construct(Assets::CustomSongTableViewCell_bsml, spotifyCell->get_transform(), spotifyCell);
-
-        // Weird hack cause HMUI touchable is not there for some reason, thanks RedBrumbler
-        spotifyCell->get_gameObject()->AddComponent<HMUI::Touchable*>();
     } else {
         spotifyCell = tcd->GetComponent<CustomSongTableViewCell*>();
     }

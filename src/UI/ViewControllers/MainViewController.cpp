@@ -1,9 +1,11 @@
-#include <string>
 #include <random>
+#include <string>
 
 #include "GlobalNamespace/LevelCollectionViewController.hpp"
 #include "GlobalNamespace/SongPreviewPlayer.hpp"
 #include "HMUI/CurvedCanvasSettings.hpp"
+#include "UnityEngine/Resources.hpp"
+#include "UnityEngine/Sprite.hpp"
 #include "beatsaverplusplus/shared/BeatSaver.hpp"
 #include "bsml/shared/BSML.hpp"
 #include "bsml/shared/BSML/Components/Backgroundable.hpp"
@@ -12,10 +14,14 @@
 #include "song-details/shared/SongDetails.hpp"
 #include "songcore/shared/SongCore.hpp"
 #include "web-utils/shared/WebUtils.hpp"
+#include <bsml/shared/BSML/Components/ButtonIconImage.hpp>
+#include <bsml/shared/BSML/Animations/AnimationStateUpdater.hpp>
 
 #include "Assets.hpp"
+#include "CustomSongFilter.hpp"
 #include "HMUI/Touchable.hpp"
 #include "Log.hpp"
+#include "SpriteCache.hpp"
 #include "UI/FlowCoordinators/SpotifySearchFlowCoordinator.hpp"
 #include "UI/TableViewDataSources/CustomSongTableViewDataSource.hpp"
 #include "UI/TableViewDataSources/DownloadHistoryTableViewDataSource.hpp"
@@ -24,10 +30,6 @@
 #include "UI/ViewControllers/MainViewController.hpp"
 #include "Utils.hpp"
 #include "main.hpp"
-#include "CustomSongFilter.hpp"
-
-#include "UnityEngine/Resources.hpp"
-#include "UnityEngine/Sprite.hpp"
 
 DEFINE_TYPE(SpotifySearch::UI::ViewControllers, MainViewController);
 
@@ -56,39 +58,19 @@ static std::vector<std::string> getWords(const std::string& text) {
     return words;
 }
 
-SongFilterFunction DEFAULT_SONG_FILTER_FUNCTION = [](const spotify::Track& track, const CustomSongFilter& customSongFilter) {
-    SongDetailsCache::SongDetails* songDetails = SongDetailsCache::SongDetails::Init().get();
-    std::vector<const SongDetailsCache::Song*> songs = songDetails->FindSongs([customSongFilter](const SongDetailsCache::SongDifficulty& songDifficulty) {
-        // Difficulty
-        const std::vector<SongDetailsCache::MapDifficulty>& filterMapDifficulties = customSongFilter.difficulties_;
-        if (!filterMapDifficulties.empty()) {
-            const SongDetailsCache::MapDifficulty mapDifficulty = songDifficulty.difficulty;
-            if (!std::ranges::contains(filterMapDifficulties, mapDifficulty)) {
-                return false;
-            }
-        }
-
-        return true;
-    });
-
+SongFilterFunction DEFAULT_SONG_FILTER_FUNCTION = [](const SongDetailsCache::Song* const song, const spotify::Track& track) {
     // Remove songs that don't have at least one word from the Spotify track in the name
-    auto match = songs | std::views::filter([track](const SongDetailsCache::Song* song) {
-                     const std::vector<std::string> wordsInTrackName = getWords(track.name);
-                     const std::vector<std::string> wordsInSongName = getWords(song->songName());
+    const std::vector<std::string> wordsInTrackName = getWords(track.name);
+    const std::vector<std::string> wordsInSongName = getWords(song->songName());
 
-                     bool didMatchAtLeastOneWordFromSongName = false;
-                     for (const std::string& word : wordsInTrackName) {
-                         if (std::ranges::find(wordsInSongName, word) != wordsInSongName.end()) {
-                             didMatchAtLeastOneWordFromSongName = true;
-                         }
-                     }
+    bool didMatchAtLeastOneWordFromSongName = false;
+    for (const std::string& word : wordsInTrackName) {
+        if (std::ranges::find(wordsInSongName, word) != wordsInSongName.end()) {
+            didMatchAtLeastOneWordFromSongName = true;
+        }
+    }
 
-                     return didMatchAtLeastOneWordFromSongName;
-                 });
-
-    // Materialize the view into a vector
-    std::vector<const SongDetailsCache::Song*> result(match.begin(), match.end());
-    return result;
+    return didMatchAtLeastOneWordFromSongName;
 };
 
 SongScoreFunction DEFAULT_SONG_SCORE_FUNCTION = [](const spotify::Track& track, const SongDetailsCache::Song& song) {
@@ -183,7 +165,7 @@ void MainViewController::reloadSpotifyTrackListView() {
             std::vector<spotify::Track> tracks;
             try {
                 if (selectedPlaylist_->id == "liked-songs") {
-                    tracks = spotifyClient->getLikedSongs(offset, 200);
+                    tracks = spotifyClient->getLikedSongs(offset, 300);
                 } else {
                     tracks = spotifyClient->getPlaylistTracks(selectedPlaylist_->id, offset, 50);
                 }
@@ -204,7 +186,6 @@ void MainViewController::reloadSpotifyTrackListView() {
                     spotifyListViewStatusContainer_->get_gameObject()->set_active(true);
 
                     //spotifyTrackListView_->get_gameObject()->set_active(false);
-                    spotifyListViewStatusContainer_->get_gameObject()->set_active(true);
                     spotifyTrackListStatusTextView_->set_text("No tracks");
                 }
                 Utils::reloadDataKeepingPosition(spotifyTrackListView_->tableView);
@@ -292,7 +273,23 @@ void MainViewController::PostParse() {
         //spotifyPlaylistListView_->get_gameObject()->set_active(true);
     }
 
+    // Set the icon
+    static constexpr std::string_view KEY_DL_ICON = "show-downloaded-songs-icon";
+    UnityW<UnityEngine::Sprite> sprite = SpriteCache::getInstance().get(KEY_DL_ICON);
+    if (!sprite) {
+        sprite = BSML::Lite::ArrayToSprite(Assets::_binary_show_downloaded_songs_png_start);
+        SpriteCache::getInstance().add(KEY_DL_ICON, sprite);
+    }
+    hideDownloadedMapsButton_->GetComponent<BSML::ButtonIconImage*>()->SetIcon(sprite);
+    static constexpr float scale = 1.5f;
+    hideDownloadedMapsButton_->get_transform()->Find("Content/Icon")->set_localScale({scale, scale, scale});
+
     setSelectedSongUi(previewSong_);
+
+    Utils::removeRaycastFromButtonIcon(playlistsMenuButton_);
+    Utils::removeRaycastFromButtonIcon(randomTrackButton_);
+    Utils::removeRaycastFromButtonIcon(showAllByArtistButton_);
+    Utils::removeRaycastFromButtonIcon(hideDownloadedMapsButton_);
 }
 
 void MainViewController::onRandomTrackButtonClicked() {
@@ -349,6 +346,7 @@ void MainViewController::ctor() {
     allPlaylistsLoaded_ = false;
     customSongFilter_ = std::make_unique<CustomSongFilter>();
     isShowingAllTracksByArtist_ = false;
+    isShowingDownloadedMaps_ = true;
     currentSongFilter_ = SpotifySearch::Filter::DEFAULT_SONG_FILTER_FUNCTION;
     currentSongScore_ = SpotifySearch::Filter::DEFAULT_SONG_SCORE_FUNCTION;
 }
@@ -479,6 +477,7 @@ void MainViewController::onPlaylistsMenuButtonClicked() {
     spotifyListViewStatusContainer_->get_gameObject()->set_active(false);
 
     showAllByArtistButton_->get_gameObject()->set_active(false);
+    hideDownloadedMapsButton_->get_gameObject()->set_active(false);
 
     randomTrackButton_->get_gameObject()->set_active(false);
 
@@ -643,10 +642,37 @@ void MainViewController::doSongSearch(const spotify::Track& track) {
 
     isSearchInProgress_ = true;
     std::thread([this, track]() {
-        const std::vector<const SongDetailsCache::Song*> filtered = currentSongFilter_(track, *customSongFilter_);
+        SongDetailsCache::SongDetails* songDetails = SongDetailsCache::SongDetails::Init().get();
+        std::vector<const SongDetailsCache::Song*> songs = songDetails->FindSongs([this](const SongDetailsCache::SongDifficulty& songDifficulty) {
+            // Difficulty
+            const std::vector<SongDetailsCache::MapDifficulty>& filterMapDifficulties = customSongFilter_->difficulties_;
+            if (!filterMapDifficulties.empty()) {
+                const SongDetailsCache::MapDifficulty mapDifficulty = songDifficulty.difficulty;
+                if (!std::ranges::contains(filterMapDifficulties, mapDifficulty)) {
+                    return false;
+                }
+            }
+
+            // Show downloaded songs
+            if (!customSongFilter_->includeDownloadedSongs_) {
+                if (SongCore::API::Loading::GetLevelByHash(songDifficulty.song().hash())) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        // Filter songs
+        songs.erase(
+            std::remove_if(
+                songs.begin(), songs.end(),
+                [this, track](const SongDetailsCache::Song* song) {
+                    return !currentSongFilter_(song, track);
+                }),
+            songs.end());
 
         // Sort songs
-        std::vector<const SongDetailsCache::Song*> songs(filtered.begin(), filtered.end());
         std::stable_sort(songs.begin(), songs.end(), [&](const SongDetailsCache::Song* const a, const SongDetailsCache::Song* const b) {
             return currentSongScore_(track, *a) > currentSongScore_(track, *b);
         });
@@ -712,12 +738,13 @@ void MainViewController::onTrackSelected(UnityW<HMUI::TableView> table, int id) 
 
     // Enable the artist search button
     showAllByArtistButton_->get_gameObject()->set_active(true);
+    hideDownloadedMapsButton_->get_gameObject()->set_active(true);
 
     // Update the artist search button
     if (isShowingAllTracksByArtist_) {
         std::stringstream stringStream;
         stringStream << "Showing all songs by";
-        for (const spotify::Artist &artist : selectedTrack_->artists) {
+        for (const spotify::Artist& artist : selectedTrack_->artists) {
             stringStream << "\n<color=blue>" << artist.name << "</color>";
         }
         UnityW<HMUI::HoverHint> hoverHintComponent = showAllByArtistButton_->GetComponent<HMUI::HoverHint*>();
@@ -889,7 +916,7 @@ void MainViewController::onShowAllByArtistButtonClicked() {
         // Update the artist search button
         std::stringstream stringStream;
         stringStream << "Showing all songs by";
-        for (const spotify::Artist &artist : selectedTrack_->artists) {
+        for (const spotify::Artist& artist : selectedTrack_->artists) {
             stringStream << "\n<color=blue>" << artist.name << "</color>";
         }
         hoverHintComponent->set_text(stringStream.str());
@@ -897,50 +924,30 @@ void MainViewController::onShowAllByArtistButtonClicked() {
         iconImageView->set_color(color);
         underlineImageView->set_color(color);
 
-        currentSongFilter_ = [](const spotify::Track& track, const CustomSongFilter& customSongFilter) {
-            SongDetailsCache::SongDetails* songDetails = SongDetailsCache::SongDetails::Init().get();
-            std::vector<const SongDetailsCache::Song*> songs = songDetails->FindSongs([customSongFilter](const SongDetailsCache::SongDifficulty& songDifficulty) {
-                // Difficulty
-                const std::vector<SongDetailsCache::MapDifficulty>& filterMapDifficulties = customSongFilter.difficulties_;
-                if (!filterMapDifficulties.empty()) {
-                    const SongDetailsCache::MapDifficulty mapDifficulty = songDifficulty.difficulty;
-                    if (!std::ranges::contains(filterMapDifficulties, mapDifficulty)) {
-                        return false;
-                    }
+        currentSongFilter_ = [](const SongDetailsCache::Song* const song, const spotify::Track& track) {
+            // Remove songs that don't have at least one word from the Spotify track in the name
+            bool didContainArtist = false;
+            for (const spotify::Artist& artist : track.artists) {
+                const std::vector<std::string> artistTokens = SpotifySearch::Filter::getWords(artist.name);
+                if (containsContiguous(SpotifySearch::Filter::getWords(song->songAuthorName()), artistTokens)) {
+                    didContainArtist = true;
+                    break;
+                }
+                if (containsContiguous(SpotifySearch::Filter::getWords(song->levelAuthorName()), artistTokens)) {
+                    didContainArtist = true;
+                    break;
                 }
 
-                return true;
-            });
-
-            // Remove songs that don't have at least one word from the Spotify track in the name
-            auto match = songs | std::views::filter([track](const SongDetailsCache::Song* song) {
-                             bool didContainArtist = false;
-                             for (const spotify::Artist &artist : track.artists) {
-                                 const std::vector<std::string> artistTokens = SpotifySearch::Filter::getWords(artist.name);
-                                 if (containsContiguous(SpotifySearch::Filter::getWords(song->songAuthorName()), artistTokens)) {
-                                     didContainArtist = true;
-                                     break;
-                                 }
-                                 if (containsContiguous(SpotifySearch::Filter::getWords(song->levelAuthorName()), artistTokens)) {
-                                     didContainArtist = true;
-                                     break;
-                                 }
-
-                                 // todo: handle case where song name contains artist but not correct
-                                 // todo: ex. artist = Luma; song name = "Luma Pools"
-                                 //if (containsContiguous(SpotifySearch::Filter::getWords(song->songName()), artistTokens)) {
-                                 //    didContainArtist = true;
-                                 //    break;
-                                 //}
-                             }
-                             return didContainArtist;
-                         });
-
-            // Materialize the view into a vector
-            std::vector<const SongDetailsCache::Song*> result(match.begin(), match.end());
-            return result;
+                // todo: handle case where song name contains artist but not correct
+                // todo: ex. artist = Luma; song name = "Luma Pools"
+                //if (containsContiguous(SpotifySearch::Filter::getWords(song->songName()), artistTokens)) {
+                //    didContainArtist = true;
+                //    break;
+                //}
+            }
+            return didContainArtist;
         };
-        currentSongScore_ = [](const spotify::Track& track, const SongDetailsCache::Song& song){
+        currentSongScore_ = [](const spotify::Track& track, const SongDetailsCache::Song& song) {
             int score = 0;
 
             // Increase score based on upvotes
@@ -969,6 +976,37 @@ void MainViewController::onShowAllByArtistButtonClicked() {
     controller->SetupAndShowHintPanel(hoverHintComponent);
 
     doSongSearch(*selectedTrack_);
+}
+
+void MainViewController::onHideDownloadedMapsButtonClicked() {
+    isShowingDownloadedMaps_ = !isShowingDownloadedMaps_;
+
+    UnityW<HMUI::HoverHint> hoverHintComponent = hideDownloadedMapsButton_->GetComponent<HMUI::HoverHint*>();
+    UnityW<HMUI::ImageView> iconImageView = hideDownloadedMapsButton_->get_transform()->Find("Content/Icon")->GetComponent<HMUI::ImageView*>();
+    UnityW<HMUI::ImageView> underlineImageView = hideDownloadedMapsButton_->get_transform()->Find("Underline")->GetComponent<HMUI::ImageView*>();
+
+    if (!isShowingDownloadedMaps_) {
+
+        // Update the artist search button
+        hoverHintComponent->set_text("Downloaded maps hidden");
+        const UnityEngine::Color color(0.0f, 0.8118f, 1.0f, 1.0f);
+        iconImageView->set_color(color);
+        underlineImageView->set_color(color);
+    } else {
+        // Update the artist search button
+        hoverHintComponent->set_text("Hide downloaded maps");
+        iconImageView->set_color(UnityEngine::Color::get_white());
+        underlineImageView->set_color(UnityEngine::Color::get_white());
+    }
+
+    // Hide and show the hover hint to update the text
+    auto* controller = UnityEngine::Object::FindObjectOfType<HMUI::HoverHintController*>();
+    controller->HideHintInstant(hoverHintComponent);
+    controller->SetupAndShowHintPanel(hoverHintComponent);
+
+    auto csf = std::move(customSongFilter_);
+    csf->includeDownloadedSongs_ = isShowingDownloadedMaps_;
+    setFilter(*csf);
 }
 
 void MainViewController::onDownloadButtonClicked() {

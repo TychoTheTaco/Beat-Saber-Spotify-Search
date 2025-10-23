@@ -25,7 +25,7 @@ using BaseViewController = HMUI::ViewController;
 
 namespace SpotifySearch::Filter {
 
-using SongFilterFunction = std::function<std::vector<const SongDetailsCache::Song*>(const spotify::Track& track, const CustomSongFilter& customSongFilter)>;
+using SongFilterFunction = std::function<bool(const SongDetailsCache::Song* const song, const spotify::Track& track)>;
 using SongScoreFunction = std::function<int(const spotify::Track& track, const SongDetailsCache::Song& song)>;
 
 extern SongFilterFunction DEFAULT_SONG_FILTER_FUNCTION;
@@ -77,6 +77,8 @@ DECLARE_CLASS_CODEGEN_INTERFACES(SpotifySearch::UI::ViewControllers, MainViewCon
     DECLARE_INSTANCE_FIELD(UnityW<TMPro::TextMeshProUGUI>, searchResultsListStatusTextView_);
     DECLARE_INSTANCE_FIELD(UnityW<UnityEngine::UI::Button>, showAllByArtistButton_);
     DECLARE_INSTANCE_METHOD(void, onShowAllByArtistButtonClicked);
+    DECLARE_INSTANCE_FIELD(UnityW<UnityEngine::UI::Button>, hideDownloadedMapsButton_);
+    DECLARE_INSTANCE_METHOD(void, onHideDownloadedMapsButtonClicked);
 
     // Custom Song Preview
     DECLARE_INSTANCE_FIELD(TMPro::TextMeshProUGUI*, previewSongNameTextView_);
@@ -113,6 +115,8 @@ DECLARE_CLASS_CODEGEN_INTERFACES(SpotifySearch::UI::ViewControllers, MainViewCon
     std::atomic<bool> allPlaylistsLoaded_;
 
     std::atomic<bool> isShowingAllTracksByArtist_;
+    std::atomic<bool> isShowingDownloadedMaps_;
+
     SpotifySearch::Filter::SongFilterFunction currentSongFilter_;
     SpotifySearch::Filter::SongScoreFunction currentSongScore_;
 

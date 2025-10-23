@@ -12,6 +12,7 @@ struct CustomSongFilter {
     }
 
     std::vector<SongDetailsCache::MapDifficulty> difficulties_;
+    bool includeDownloadedSongs_ = true;
 };
 
 }

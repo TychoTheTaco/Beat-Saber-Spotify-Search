@@ -1,15 +1,16 @@
 # Build output
-build/
-*.qmod
+/build/
 
 # Python virtual environment
 venv/
 
 # External dependencies
-extern/
+/extern/
 
 # Auto-generated files
-include/Assets.hpp
+/include/Assets.hpp
+mod.json
+qpm.shared.json
 
 # Crash dump
 crash.txt

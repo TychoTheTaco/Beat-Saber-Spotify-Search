@@ -119,7 +119,8 @@ def main():
                     'dequeueBuffer failed',
                     'potential method match had wrong number',
                     'is generic 0 is inflated 0',
-                    'handling override method'
+                    'handling override method',
+                    '[LOGCAT]'
                 ]:
                     if item.lower() in line.lower():
                         is_excluded = True

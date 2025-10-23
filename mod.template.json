@@ -1,0 +1,21 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Lauriethefish/QuestPatcher.QMod/refs/heads/main/QuestPatcher.QMod/Resources/qmod.schema.json",
+  "_QPVersion": "1.2.0",
+  "name": "${mod_name}",
+  "id": "${mod_id}",
+  "modloader": "Scotland2",
+  "author": "Tycho Bellers",
+  "packageId": "com.beatgames.beatsaber",
+  "packageVersion": "1.40.8_7379",
+  "description": "Access your Spotify playlists and quickly search for matching custom maps",
+  "version": "${version}",
+  "dependencies": [],
+  "modFiles": [],
+  "lateModFiles": [
+    "libspotify-search.so"
+  ],
+  "libraryFiles": [],
+  "fileCopies": [],
+  "copyExtensions": [],
+  "coverImage": "cover.jpg"
+}

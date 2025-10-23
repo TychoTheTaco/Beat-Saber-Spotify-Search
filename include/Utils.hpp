@@ -41,6 +41,8 @@ std::string jsonDocumentToString(const rapidjson::Value& value);
 
 SongDetailsCache::MapDifficulty getMapDifficultyFromString(const std::string& text);
 
+void removeRaycastFromButtonIcon(UnityW<UnityEngine::UI::Button> button);
+
 namespace json {
 
 std::string getString(const rapidjson::Value& json, const std::string& key);

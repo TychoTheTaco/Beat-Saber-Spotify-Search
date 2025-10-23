@@ -39,7 +39,7 @@ void SpotifyLoginViewController::DidActivate(const bool isFirstActivation, const
 
 void SpotifyLoginViewController::PostParse() {
     // Set the clipboard icon
-    static constexpr std::string KEY_CLIPBOARD_ICON = "clipboard-icon";
+    static constexpr std::string_view KEY_CLIPBOARD_ICON = "clipboard-icon";
     UnityW<UnityEngine::Sprite> sprite = SpriteCache::getInstance().get(KEY_CLIPBOARD_ICON);
     if (!sprite) {
         sprite = BSML::Lite::ArrayToSprite(Assets::_binary_clipboard_icon_png_start);

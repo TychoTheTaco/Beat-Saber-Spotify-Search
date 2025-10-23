@@ -1,0 +1,47 @@
+name: Build
+
+on:
+  - push
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build
+          
+          # QPM
+          TMP_DIR="/tmp/qpm"
+          mkdir -p "$TMP_DIR"
+          curl -L "https://github.com/QuestPackageManager/QPM.CLI/releases/download/v1.5.2/qpm-linux-x64-static.zip" -o "$TMP_DIR/qpm.zip"
+          unzip -o "$TMP_DIR/qpm.zip" -d "$TMP_DIR"
+          QPM_BIN=$(find "$TMP_DIR" -type f -name qpm)
+          chmod +x "$QPM_BIN"
+          sudo ln -sf "$QPM_BIN" /usr/local/bin/qpm
+          
+          # NDK
+          qpm ndk download 27
+          NDK_PATH=$(qpm ndk list | grep -F "27." | awk '{print $3}')
+          echo "ANDROID_NDK_HOME=$NDK_PATH" >> $GITEA_ENV
+
+      - name: Build
+        run: |
+          qpm restore
+          cd tools
+          python3 build_and_run.py --clean --build-only
+          python3 build_and_run.py --build-only --build-type release
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Artifacts
+          compression-level: 0
+          path: |
+            build/libspotify-search.so
+            build/debug/libspotify-search.so
+            build/spotify-search-v*.qmod

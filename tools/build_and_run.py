@@ -4,16 +4,18 @@ import logging
 import shutil
 import signal
 import subprocess
-import time
+import sys
 from pathlib import Path
 from subprocess import CompletedProcess
-from typing import Any, Dict, List, Literal, Optional, Set, get_args
-from zipfile import ZIP_DEFLATED, ZipFile
+from typing import Any, Dict, List, Literal, Optional, get_args
 
 logging.basicConfig(
     format='%(asctime)s [%(name)s] [%(levelname)s] %(message)s',
     level=logging.INFO,
-    datefmt='%m/%d/%Y %H:%M:%S'
+    datefmt='%m/%d/%Y %H:%M:%S',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
 )
 
 def get_logger(name: str):
@@ -32,6 +34,8 @@ def on_sig_int(sig: int, frame):
     if is_app_running:
         stop_app(PACKAGE_NAME_BEAT_SABER)
     else:
+        logger.error('User exited with CTRL-C')
+        exit(1)
         if callable(original_on_sig_int):
             original_on_sig_int(sig, frame)
 
@@ -94,7 +98,7 @@ def build(*, project_dir: str | Path, output_dir: str | Path, build_type: BuildT
         f'-DCMAKE_BUILD_TYPE={cmake_build_type}',
         '-B',
         str(output_dir)
-    ], cwd=project_dir)
+    ], cwd=project_dir, stderr=subprocess.STDOUT)
     if process.returncode != 0:
         raise RuntimeError(f'Command Failed! Exit Code = {process.returncode}')
 
@@ -104,7 +108,7 @@ def build(*, project_dir: str | Path, output_dir: str | Path, build_type: BuildT
         'cmake',
         '--build',
         str(output_dir)
-    ], cwd=project_dir)
+    ], cwd=project_dir, stderr=subprocess.STDOUT)
     if process.returncode != 0:
         raise RuntimeError(f'Command Failed! Exit Code = {process.returncode}')
 
@@ -126,40 +130,52 @@ def create_qmod(
     if not mod_json_content:
         raise RuntimeError('Bad JSON!')
 
-    # Compile a list of all the files needed for the .qmod
-    source_files: Set[Path] = {
-        mod_json_path
-    }
+    mod_info_json = mod_json_content['info']
+    mod_id = mod_info_json['id']
+    mod_version = mod_info_json['version']
+    qmod_path = build_output_dir / f'{mod_id}-v{mod_version}.qmod'
 
-    # Cover image
-    if value := mod_json_content.get('coverImage'):
-        path = project_dir / value
-        if path.exists():
-            source_files.add(path)
-        else:
-            logger.warning(f'File does not exist: {path}')
+    process = subprocess.run([
+        'qpm',
+        'qmod',
+        'zip',
+        str(qmod_path)
+    ], cwd=project_dir, stderr=subprocess.STDOUT)
+    if process.returncode != 0:
+        raise RuntimeError(f'Command Failed! Exit Code = {process.returncode}')
 
-    # Mod files
-    if value := mod_json_content.get('modFiles'):
-        for path in value:
-            p = build_output_dir / path
-            if p.exists():
-                source_files.add(p)
-            else:
-                logger.warning(f'File does not exist: {p}')
 
-    mod_id = mod_json_content['id']
-    mod_version = mod_json_content['version']
-    qmod_path = project_dir / f'{mod_id}-v{mod_version}.qmod'
+def deploy(
+        *,
+        project_dir: str | Path,
+):
+    project_dir = Path(project_dir).absolute()
 
-    # Create .qmod file
-    logger.info(f'Creating {qmod_path.relative_to(project_dir)}')
-    with ZipFile(qmod_path, 'w', compression=ZIP_DEFLATED) as file:
-        for path in source_files:
-            logger.info(f'- {path.relative_to(project_dir)}')
-            file.write(path, arcname=path.name)
+    mod_json = None
+    with open('../mod.template.json', 'r') as file:
+        mod_json = json.load(file)
+    mod_files = mod_json['modFiles']
+    late_mod_files = mod_json['lateModFiles']
 
-    exit(1)
+    for mod_file in mod_files:
+        process = subprocess.run([
+            'adb',
+            'push',
+            Path('build', 'debug', mod_file).as_posix(),
+            Path('/sdcard/ModData/com.beatgames.beatsaber/Modloader/early_mods/').as_posix()
+        ], cwd=project_dir)
+        if process.returncode != 0:
+            raise RuntimeError(f'Command Failed! Exit Code = {process.returncode}')
+
+    for mod_file in late_mod_files:
+        process = subprocess.run([
+            'adb',
+            'push',
+            Path('build', 'debug', mod_file).as_posix(),
+            Path('/sdcard/ModData/com.beatgames.beatsaber/Modloader/mods/').as_posix()
+        ], cwd=project_dir)
+        if process.returncode != 0:
+            raise RuntimeError(f'Command Failed! Exit Code = {process.returncode}')
 
 
 def main():
@@ -176,11 +192,16 @@ def main():
         choices=get_args(BuildType),
         default='debug'
     )
+    parser.add_argument(
+        '--build-only',
+        action='store_true'
+    )
     args = parser.parse_args()
 
     # Assign arguments
     clean: bool = args.clean
     build_type: BuildType = args.build_type
+    is_build_only: bool = args.build_only
 
     project_root_dir = (Path(__file__) / '..' / '..').resolve()
     build_output_dir = project_root_dir / 'build'
@@ -188,7 +209,8 @@ def main():
     # Clean build output
     if clean:
         logger.info(f'Cleaning build output at "{build_output_dir.absolute()}"')
-        shutil.rmtree(build_output_dir)
+        if build_output_dir.exists():
+            shutil.rmtree(build_output_dir)
 
     # Build
     build(
@@ -199,27 +221,18 @@ def main():
 
     # Create .qmod file
     create_qmod(
-        mod_json_path=project_root_dir / 'mod.json',
+        mod_json_path=project_root_dir / 'qpm.json',
         project_dir=project_root_dir,
         build_output_dir=build_output_dir
     )
 
+    if is_build_only:
+        return
+
     # Push mod files
-    mod_json = None
-    with open('../mod.json', 'r') as file:
-        mod_json = json.load(file)
-    mod_files = mod_json['modFiles']
-    for mod_file in mod_files:
-        process = subprocess.run([
-            'adb',
-            'push',
-            str(Path('build', 'debug', mod_file)),
-            str(Path('/sdcard/ModData/com.beatgames.beatsaber/Modloader/mods/').as_posix())
-        ], cwd=project_root_dir, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        if process.returncode != 0:
-            logger.error(f'Failed to push file to device: {mod_file}')
-            logger.error(process.stdout.decode('utf-8'))
-            return
+    deploy(
+        project_dir=project_root_dir
+    )
 
     # Launch game
     stop_app(PACKAGE_NAME_BEAT_SABER)
@@ -243,4 +256,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()  # todo: auto exit if target proc dies
+    try:
+        main()  # todo: auto exit if target proc dies
+    except Exception as e:
+        logger.error(str(e))
+        exit(1)

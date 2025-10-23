@@ -115,7 +115,7 @@ MOD_EXTERN_FUNC void late_load() noexcept {
 
     // Register main menu button
     BSML::Register::RegisterMenuButton("Spotify Search", "Search your Spotify songs", []() {
-        SpotifySearch::Log.info("Menu button clicked!");
+        SpotifySearch::Log.info("Menu button clicked");
         SpotifySearch::openSpotifySearchFlowCoordinator();
     });
 
