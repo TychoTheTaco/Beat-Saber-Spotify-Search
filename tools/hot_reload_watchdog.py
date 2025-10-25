@@ -1,17 +1,11 @@
-import subprocess
 import threading
 import time
-from pathlib import Path, PosixPath
+from pathlib import Path
 
 from watchdog.events import DirModifiedEvent, FileModifiedEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
-
-def push(src_path: str | Path, dst_path: str | PosixPath):
-    result = subprocess.call(
-        ['adb', 'push', str(src_path), str(dst_path)]
-    )
-    print(result)
+import adb
 
 
 class WatchdogEventHandler(FileSystemEventHandler):
@@ -24,7 +18,7 @@ class WatchdogEventHandler(FileSystemEventHandler):
 
     def on_timer_expired(self):
         for path in self._modified_files:
-            push(path, self._dst_dir.as_posix())
+            adb.push(path, self._dst_dir.as_posix())
         self._modified_files.clear()
 
     def on_modified(self, event: DirModifiedEvent | FileModifiedEvent):

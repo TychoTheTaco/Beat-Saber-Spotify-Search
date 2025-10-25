@@ -7,7 +7,7 @@
     <horizontal flex-height="100" vertical-fit="Unconstrained" spacing="1" pad-left="1" pad-right="1">
 
         <image id="image_" image-color="white" src="UI/Skin/Background" preserve-aspect="true" pref-width="6"
-               pref-height="6" min-width="6" min-height="6" flex-height="0"/>
+               pref-height="6" min-width="6" min-height="6" flex-height="0" raycast-target="false"/>
 
         <vertical horizontal-fit="Unconstrained" flex-width="100" vertical-fit="PreferredSize">
 

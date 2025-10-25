@@ -6,6 +6,7 @@
 
 #include "Log.hpp"
 #include "Utils.hpp"
+#include "bsml/shared/BSML/Components/Backgroundable.hpp"
 
 using namespace SpotifySearch::UI;
 
@@ -118,5 +119,6 @@ void CustomSongTableViewCell::setSong(const SongDetailsCache::Song* const song) 
     for (const SongDetailsCache::SongDifficulty* const difficulty : difficulties) {
         HMUI::CurvedTextMeshPro* const curvedTextMeshPro = BSML::Lite::CreateText(diffsContainer_->get_transform(), getDifficultyName(difficulty->difficulty), 2);
         curvedTextMeshPro->set_alignment(TMPro::TextAlignmentOptions::Center);
+        curvedTextMeshPro->set_raycastTarget(false);
     }
 }

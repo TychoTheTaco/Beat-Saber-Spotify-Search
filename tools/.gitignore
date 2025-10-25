@@ -1,2 +1,5 @@
 # Python virtual environment
-venv/
+/venv/
+
+# Temporary directory
+/temp/

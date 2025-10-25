@@ -9,6 +9,8 @@ from pathlib import Path
 from subprocess import CompletedProcess
 from typing import Any, Dict, List, Literal, Optional, get_args
 
+import adb
+
 logging.basicConfig(
     format='%(asctime)s [%(name)s] [%(levelname)s] %(message)s',
     level=logging.INFO,
@@ -158,24 +160,20 @@ def deploy(
     late_mod_files = mod_json['lateModFiles']
 
     for mod_file in mod_files:
-        process = subprocess.run([
-            'adb',
-            'push',
-            Path('build', 'debug', mod_file).as_posix(),
-            Path('/sdcard/ModData/com.beatgames.beatsaber/Modloader/early_mods/').as_posix()
-        ], cwd=project_dir)
-        if process.returncode != 0:
-            raise RuntimeError(f'Command Failed! Exit Code = {process.returncode}')
+        result = adb.push(
+            project_dir / 'build' / 'debug' / mod_file,
+            '/sdcard/ModData/com.beatgames.beatsaber/Modloader/early_mods/'
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f'Command Failed! Exit Code = {result.returncode}')
 
     for mod_file in late_mod_files:
-        process = subprocess.run([
-            'adb',
-            'push',
-            Path('build', 'debug', mod_file).as_posix(),
-            Path('/sdcard/ModData/com.beatgames.beatsaber/Modloader/mods/').as_posix()
-        ], cwd=project_dir)
-        if process.returncode != 0:
-            raise RuntimeError(f'Command Failed! Exit Code = {process.returncode}')
+        result = adb.push(
+            project_dir / 'build' / 'debug' / mod_file,
+            '/sdcard/ModData/com.beatgames.beatsaber/Modloader/mods/'
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f'Command Failed! Exit Code = {result.returncode}')
 
 
 def main():

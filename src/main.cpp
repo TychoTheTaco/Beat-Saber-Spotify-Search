@@ -23,7 +23,11 @@ MOD_EXTERN_FUNC void setup(CModInfo* info) noexcept {
     *info = modInfo.to_c();
     getConfig().Load();
 
-    std::filesystem::rename("/sdcard/ModData/com.beatgames.beatsaber/logs2/spotify-search.log", "/sdcard/ModData/com.beatgames.beatsaber/logs2/spotify-search.1.log");
+    try {
+        std::filesystem::rename("/sdcard/ModData/com.beatgames.beatsaber/logs2/spotify-search.log", "/sdcard/ModData/com.beatgames.beatsaber/logs2/spotify-search.1.log");
+    } catch (const std::filesystem::filesystem_error &error) {
+        SpotifySearch::Log.info("Failed to rotate log: {}", error.what());
+    }
 
     // Initialize logging. This enables saving logs to disk.
     Paper::Logger::RegisterFileContextId("spotify-search");

@@ -180,7 +180,7 @@ void MainViewController::reloadSpotifyTrackListView() {
             if (tracks.size() < 50) {
                 allTracksLoaded_ = true;
             }
-            BSML::MainThreadScheduler::Schedule([this, spotifyTrackTableViewDataSource, tracks]() {
+            BSML::MainThreadScheduler::Schedule([this, spotifyTrackTableViewDataSource, tracks, offset]() {
                 spotifyTrackTableViewDataSource->tracks_.insert(spotifyTrackTableViewDataSource->tracks_.end(), tracks.begin(), tracks.end());
                 if (spotifyTrackTableViewDataSource->tracks_.empty()) {
                     spotifyListViewStatusContainer_->get_gameObject()->set_active(true);
@@ -192,7 +192,16 @@ void MainViewController::reloadSpotifyTrackListView() {
 
                 isLoadingMoreSpotifyTracks_ = false;
                 spotifyTrackListLoadingIndicatorContainer_->get_gameObject()->set_active(false);
-                randomTrackButton_->get_gameObject()->set_active(true);
+
+                if (!spotifyTrackTableViewDataSource->tracks_.empty()) {
+                    randomTrackButton_->get_gameObject()->set_active(true);
+                }
+
+                // Automatically select the first track
+                if (offset == 0 && !spotifyTrackTableViewDataSource->tracks_.empty()) {
+                    spotifyTrackListView_->tableView->SelectCellWithIdx(0, true);
+                    onTrackSelected(spotifyTrackListView_->tableView, 0);
+                }
             });
         }).detach();
     };
