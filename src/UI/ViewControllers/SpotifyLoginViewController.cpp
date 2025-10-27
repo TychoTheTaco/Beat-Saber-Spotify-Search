@@ -53,6 +53,7 @@ void SpotifyLoginViewController::PostParse() {
         button->GetComponent<BSML::ButtonIconImage*>()->SetIcon(sprite);
         static constexpr float scale = 1.5f;
         button->get_transform()->Find("Content/Icon")->set_localScale({scale, scale, scale});
+        Utils::removeRaycastFromButtonIcon(button);
     }
 
     // Set the redirect URI text field
@@ -61,6 +62,8 @@ void SpotifyLoginViewController::PostParse() {
 }
 
 bool generateSelfSignedCert(const std::string& certFile, const std::string& keyFile) {
+    SpotifySearch::Log.info("Generating SSL certificate. certFile = {} keyFile = {}", certFile, keyFile);
+
     // Generate RSA key pair
     EVP_PKEY* pkey = EVP_PKEY_new();
     RSA* rsa = RSA_new();
@@ -91,11 +94,21 @@ bool generateSelfSignedCert(const std::string& certFile, const std::string& keyF
 
     // Write certificate to file
     FILE* certFp = fopen(certFile.c_str(), "wb");
+    if (!certFp) {
+        const auto reason = strerror(errno);
+        SpotifySearch::Log.info("Failed to open certFile! error = {} reason = {} path = {}", errno, reason, certFile);
+        return false;
+    }
     PEM_write_X509(certFp, x509);
     fclose(certFp);
 
     // Write private key to file
     FILE* keyFp = fopen(keyFile.c_str(), "wb");
+    if (!keyFp) {
+        const auto reason = strerror(errno);
+        SpotifySearch::Log.info("Failed to open keyFile! error = {} reason = {} path = {}", errno, reason, keyFile);
+        return false;
+    }
     PEM_write_PrivateKey(keyFp, pkey, nullptr, nullptr, 0, nullptr, nullptr);
     fclose(keyFp);
 
@@ -224,7 +237,6 @@ void SpotifyLoginViewController::onLoginButtonClicked() {
             // Check we got the authorization code
             std::string authorizationCode;
             for (const auto& item : request.params) {
-                SpotifySearch::Log.debug("PARAM: {}, {}", item.first, item.second);
                 if (item.first == "code") {
                     authorizationCode = item.second;
                     break;
@@ -232,7 +244,7 @@ void SpotifyLoginViewController::onLoginButtonClicked() {
             }
             if (!authorizationCode.empty()) {
                 response.status = 200;
-                response.set_content("Login successful. You can now close this window.", "text/plain");
+                response.set_content("Login successful. You can now close this window and return to Beat Saber.", "text/plain");
                 BSML::MainThreadScheduler::Schedule([this, authorizationCode](){
                     onAuthorizationCodeReceived(authorizationCode);
                 });

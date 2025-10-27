@@ -9,7 +9,7 @@
         <text font-size="3.5" text="Client ID"/>
         <horizontal>
             <text-field id="clientIdTextField_" text="Client ID"/>
-            <icon-button id="clientIdPasteButton_" on-click="onPasteClientIdButtonClicked" hover-hint="Paste" icon="#Papercut" pref-width="8" pref-height="8"/>
+            <icon-button id="clientIdPasteButton_" on-click="onPasteClientIdButtonClicked" hover-hint="Paste" pref-width="8" pref-height="8"/>
         </horizontal>
     </vertical>
 
@@ -17,7 +17,7 @@
         <text font-size="3.5" text="Client Secret"/>
         <horizontal>
             <text-field id="clientSecretTextField_" text="Client Secret"/>
-            <icon-button id="clientSecretPasteButton_" on-click="onPasteClientSecretButtonClicked" hover-hint="Paste" icon="#HorizontalArrowIcon" pref-width="8" pref-height="8"/>
+            <icon-button id="clientSecretPasteButton_" on-click="onPasteClientSecretButtonClicked" hover-hint="Paste" pref-width="8" pref-height="8"/>
         </horizontal>
     </vertical>
 

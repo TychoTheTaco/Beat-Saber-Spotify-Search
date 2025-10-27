@@ -32,6 +32,8 @@ MOD_EXTERN_FUNC void setup(CModInfo* info) noexcept {
     // Initialize logging. This enables saving logs to disk.
     Paper::Logger::RegisterFileContextId("spotify-search");
 
+    SpotifySearch::Log.info("Version: {}", info->version);
+
     // Capture fatal logs from logcat to get crash stacks
     std::thread([](){
         SpotifySearch::Log.info("Logcat thread started");
@@ -129,7 +131,13 @@ MOD_EXTERN_FUNC void late_load() noexcept {
     // Install hooks
     INSTALL_HOOK(SpotifySearch::Log, onDismissFlowCoordinator);
 
-    SpotifySearch::dataDir_ = getDataDir(modInfo);
+    // Set up the data directory
+    const std::string dataDirectoryString = getDataDir(modInfo);
+    const std::filesystem::path dataDirectory {dataDirectoryString};
+    if (!std::filesystem::exists(dataDirectory)) {
+        std::filesystem::create_directory(dataDirectory);
+    }
+    SpotifySearch::dataDir_ = dataDirectory;
 
     // Initialize the Spotify client
     SpotifySearch::spotifyClient = std::make_shared<spotify::Client>();
