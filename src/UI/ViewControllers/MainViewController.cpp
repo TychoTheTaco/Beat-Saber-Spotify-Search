@@ -339,7 +339,8 @@ void MainViewController::onSpotifyTrackListRetryButtonClicked() {
 }
 
 void MainViewController::setFilter(const CustomSongFilter& customSongFilter) {
-    customSongFilter_ = std::make_unique<CustomSongFilter>(customSongFilter);
+    customSongFilter_ = customSongFilter;
+    customSongFilter_.includeDownloadedSongs_ = isShowingDownloadedMaps_;
     if (selectedTrack_) {
         doSongSearch(*selectedTrack_);
     }
@@ -353,7 +354,7 @@ void MainViewController::ctor() {
     isLoadingMoreSpotifyPlaylists_ = false;
     allTracksLoaded_ = false;
     allPlaylistsLoaded_ = false;
-    customSongFilter_ = std::make_unique<CustomSongFilter>();
+    customSongFilter_ = CustomSongFilter();
     isShowingAllTracksByArtist_ = false;
     isShowingDownloadedMaps_ = true;
     currentSongFilter_ = SpotifySearch::Filter::DEFAULT_SONG_FILTER_FUNCTION;
@@ -650,11 +651,12 @@ void MainViewController::doSongSearch(const spotify::Track& track) {
     searchResultsListViewErrorContainer_->get_gameObject()->set_active(false);
 
     isSearchInProgress_ = true;
-    std::thread([this, track]() {
+    const CustomSongFilter customSongFilter = customSongFilter_;
+    std::thread([this, track, customSongFilter]() {
         SongDetailsCache::SongDetails* songDetails = SongDetailsCache::SongDetails::Init().get();
-        std::vector<const SongDetailsCache::Song*> songs = songDetails->FindSongs([this](const SongDetailsCache::SongDifficulty& songDifficulty) {
+        std::vector<const SongDetailsCache::Song*> songs = songDetails->FindSongs([customSongFilter](const SongDetailsCache::SongDifficulty& songDifficulty) {
             // Difficulty
-            const std::vector<SongDetailsCache::MapDifficulty>& filterMapDifficulties = customSongFilter_->difficulties_;
+            const std::vector<SongDetailsCache::MapDifficulty>& filterMapDifficulties = customSongFilter.difficulties_;
             if (!filterMapDifficulties.empty()) {
                 const SongDetailsCache::MapDifficulty mapDifficulty = songDifficulty.difficulty;
                 if (!std::ranges::contains(filterMapDifficulties, mapDifficulty)) {
@@ -663,7 +665,7 @@ void MainViewController::doSongSearch(const spotify::Track& track) {
             }
 
             // Show downloaded songs
-            if (!customSongFilter_->includeDownloadedSongs_) {
+            if (!customSongFilter.includeDownloadedSongs_) {
                 if (SongCore::API::Loading::GetLevelByHash(songDifficulty.song().hash())) {
                     return false;
                 }
@@ -1013,9 +1015,8 @@ void MainViewController::onHideDownloadedMapsButtonClicked() {
     controller->HideHintInstant(hoverHintComponent);
     controller->SetupAndShowHintPanel(hoverHintComponent);
 
-    auto csf = std::move(customSongFilter_);
-    csf->includeDownloadedSongs_ = isShowingDownloadedMaps_;
-    setFilter(*csf);
+    customSongFilter_.includeDownloadedSongs_ = isShowingDownloadedMaps_;
+    setFilter(customSongFilter_);
 }
 
 void MainViewController::onDownloadButtonClicked() {

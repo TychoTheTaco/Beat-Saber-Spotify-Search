@@ -159,9 +159,13 @@ def deploy(
     mod_files = mod_json['modFiles']
     late_mod_files = mod_json['lateModFiles']
 
+    lib_prefix_path_release = project_dir / 'build'
+    lib_prefix_path_debug = lib_prefix_path_release / 'debug'
+    lib_prefix_path = lib_prefix_path_release
+
     for mod_file in mod_files:
         result = adb.push(
-            project_dir / 'build' / 'debug' / mod_file,
+            lib_prefix_path / mod_file,
             '/sdcard/ModData/com.beatgames.beatsaber/Modloader/early_mods/'
         )
         if result.returncode != 0:
@@ -169,7 +173,7 @@ def deploy(
 
     for mod_file in late_mod_files:
         result = adb.push(
-            project_dir / 'build' / 'debug' / mod_file,
+            lib_prefix_path / mod_file,
             '/sdcard/ModData/com.beatgames.beatsaber/Modloader/mods/'
         )
         if result.returncode != 0:

@@ -19,6 +19,9 @@ bool isSpriteValid(UnityW<UnityEngine::Sprite> sprite) {
     if (!texture) {
         return false;
     }
+    if (!UnityEngine::Object::IsNativeObjectAlive(texture)) {
+        return false;
+    }
 
     return true;
 }

@@ -20,6 +20,10 @@ def main():
     temp_dir = Path('./temp')
     temp_dir.mkdir(exist_ok=True)
 
+    symbols_dir = temp_dir
+    if symbols_arg:
+        symbols_dir = Path(symbols_arg)
+
     # Pull the debug library from the device
     if not symbols_arg:
         print(Color.CYAN('Pulling libraries from device...'))
@@ -65,7 +69,6 @@ def main():
     project_root_dir = (Path(__file__) / '..' / '..').resolve()
     build_output_dir = project_root_dir / 'build'
 
-    symbol_dir = temp_dir
     print(ndk_stack_exe)
 
     for path in total_paths:
@@ -73,7 +76,7 @@ def main():
         process = subprocess.run([
             str(ndk_stack_exe.absolute()),
             '-sym',
-            str(symbol_dir),
+            str(symbols_dir),
             '-i',
             path.absolute()
         ], stderr=subprocess.STDOUT)

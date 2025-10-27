@@ -6,7 +6,7 @@
   "info": {
     "name": "Spotify Search",
     "id": "spotify-search",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "url": "https://github.com/TychoTheTaco/Beat-Saber-Spotify-Search",
     "additionalData": {
       "overrideSoName": "libspotify-search.so",

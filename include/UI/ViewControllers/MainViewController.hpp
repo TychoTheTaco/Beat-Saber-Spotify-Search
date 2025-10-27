@@ -132,7 +132,7 @@ DECLARE_CLASS_CODEGEN_INTERFACES(SpotifySearch::UI::ViewControllers, MainViewCon
 
     void doSongSearch(const spotify::Track& track);
 
-    std::unique_ptr<CustomSongFilter> customSongFilter_;
+    CustomSongFilter customSongFilter_;
 
     void startDownloadThread();
 
