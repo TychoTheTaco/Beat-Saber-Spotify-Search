@@ -51,4 +51,6 @@ std::vector<T> getArray(const rapidjson::Value& json, const std::string& key, co
     return parsedItems;
 }
 
+const rapidjson::Value& getObject(const rapidjson::Value& json, const std::string& key);
+
 }

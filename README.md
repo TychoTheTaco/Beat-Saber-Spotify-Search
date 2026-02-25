@@ -7,6 +7,10 @@ A Beat Saber mod for Quest 3 allowing you to access your Spotify playlists from 
 
 > ℹ️ Note
 >
+> As of March 9, 2026, a premium Spotify account is required to use this mod. This is due to new [API restrictions](https://developer.spotify.com/blog/2026-02-06-update-on-developer-access-and-platform-security).
+
+> ℹ️ Note
+>
 > Due to Spotify placing limitations on their API, using this mod will require you to create your own "Spotify App" in the Spotify Developer Dashboard. This is free and not too difficult to set up. The steps below will guide you through the process.
 
 ### 1. Creating a Spotify App

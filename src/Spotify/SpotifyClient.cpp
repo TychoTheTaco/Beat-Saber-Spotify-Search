@@ -4,11 +4,11 @@
 
 #include <web-utils/shared/WebUtils.hpp>
 
+#include "Configuration.hpp"
 #include "Encryption.hpp"
 #include "Log.hpp"
 #include "Spotify/Json.hpp"
 #include "Spotify/Track.hpp"
-#include "Spotify/Utils.hpp"
 #include "ThreadPool.hpp"
 #include "Utils.hpp"
 
@@ -32,11 +32,15 @@ class Profiler {
     const std::string message_;
 };
 
-bool spotify::Client::isAuthenticated() {
+std::filesystem::path Client::getAuthTokenPath() {
+    return SpotifySearch::getDataDirectory() / "spotifyAuthToken.json";
+}
+
+bool Client::isAuthenticated() const {
     return !encodedClientIdAndClientSecret_.empty() && !accessToken_.empty() && !refreshToken_.empty();
 }
 
-void spotify::Client::saveAuthTokensToFile(const std::filesystem::path& path, const std::string_view password) {
+void Client::saveAuthTokensToFile(const std::filesystem::path& path, const std::string_view password) {
     // Create JSON document
     rapidjson::Document document;
     document.SetObject();
@@ -201,7 +205,7 @@ std::vector<PlaylistTrack> Client::getPlaylistTracks(const std::string_view play
     // TODO: Only do this when necessary
     refreshAccessToken2();
 
-    std::vector<spotify::PlaylistTrack> tracks = getAllItems<PlaylistTrack>([this, playlistId](const size_t offset, const size_t limit) {
+    std::vector<PlaylistTrack> tracks = getAllItems<PlaylistTrack>([this, playlistId](const size_t offset, const size_t limit) {
         return apiGetPlaylistTracks(playlistId, offset, limit);
     }, getPlaylistTrackFromJson);
 
@@ -246,7 +250,7 @@ Playlist Client::getLikedSongsPlaylist() {
                 {"Authorization", std::format("Bearer {}", accessToken_)}}));
     const rapidjson::Document& document = getJsonDocumentFromResponse(response);
 
-    playlist.id = "liked-songs";
+    playlist.id = PLAYLIST_ID_LIKED_SONGS;
     playlist.name = "Liked Songs";
     playlist.totalItemCount = document["total"].GetUint64();
 
@@ -284,11 +288,11 @@ rapidjson::Document Client::apiGetLikedSongs(const size_t offset, const size_t l
 rapidjson::Document Client::apiGetPlaylistTracks(const std::string_view playlistId, const size_t offset, const size_t limit) {
     const auto response = WebUtils::Get<WebUtils::JsonResponse>(
         WebUtils::URLOptions(
-            getUrl(std::format("playlists/{}/tracks", playlistId)),
+            getUrl(std::format("playlists/{}/items", playlistId)),
             WebUtils::URLOptions::QueryMap{
                 {"offset", std::to_string(offset)},
                 {"limit", std::to_string(limit)},
-                {"fields", "total,items(added_at,track(id,name,artists,album(images))"},
+                {"fields", "total,items(added_at,item(id,name,artists,album(images))"},
             },
             WebUtils::URLOptions::HeaderMap{
                 {"Authorization", std::format("Bearer {}", accessToken_)}}));

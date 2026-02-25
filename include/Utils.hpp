@@ -29,6 +29,8 @@ UnityW<UnityEngine::Sprite> getPlaylistPlaceholderSprite();
 
 UnityW<UnityEngine::Sprite> getAlbumPlaceholderSprite();
 
+UnityW<UnityEngine::Sprite> getLikedSongsPlaylistPlaceholderSprite();
+
 void goToLevelSelect(const std::string& songHash);
 
 std::string encodeBase64(const std::string& input);

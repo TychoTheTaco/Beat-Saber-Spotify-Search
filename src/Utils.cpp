@@ -202,6 +202,16 @@ UnityW<UnityEngine::Sprite> SpotifySearch::Utils::getAlbumPlaceholderSprite() {
     return sprite;
 }
 
+UnityW<UnityEngine::Sprite> SpotifySearch::Utils::getLikedSongsPlaylistPlaceholderSprite() {
+    static constexpr const char* const KEY = "liked-songs-playlist-placeholder";
+    UnityW<UnityEngine::Sprite> sprite = SpriteCache::getInstance().get(KEY);
+    if (!sprite) {
+        sprite = BSML::Lite::ArrayToSprite(IncludedAssets::liked_songs_playlist_art_placeholder_png);
+        SpriteCache::getInstance().add(KEY, sprite);
+    }
+    return sprite;
+}
+
 custom_types::Helpers::Coroutine SpotifySearch::Utils::getAudioClipFromUrl(const std::string_view url, const std::function<void(UnityW<UnityEngine::AudioClip> audioClip)> onLoadComplete) {
     UnityEngine::Networking::UnityWebRequest* const request = UnityEngine::Networking::UnityWebRequestMultimedia::GetAudioClip(url, UnityEngine::AudioType::MPEG);
     co_yield reinterpret_cast<System::Collections::IEnumerator*>(CRASH_UNLESS(request->SendWebRequest()));

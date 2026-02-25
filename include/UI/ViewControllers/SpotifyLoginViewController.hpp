@@ -31,7 +31,7 @@ DECLARE_CLASS_CODEGEN_INTERFACES(SpotifySearch::UI::ViewControllers, SpotifyLogi
     DECLARE_INSTANCE_FIELD(UnityW<UnityEngine::UI::Button>, clientIdPasteButton_);
     DECLARE_INSTANCE_METHOD(void, onPasteClientIdButtonClicked);
 
-    // Client secret
+    // Client secrets
     DECLARE_INSTANCE_FIELD(UnityW<HMUI::InputFieldView>, clientSecretTextField_);
     DECLARE_INSTANCE_FIELD(UnityW<UnityEngine::UI::Button>, clientSecretPasteButton_);
     DECLARE_INSTANCE_METHOD(void, onPasteClientSecretButtonClicked);
