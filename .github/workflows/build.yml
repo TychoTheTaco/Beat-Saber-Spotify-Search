@@ -18,7 +18,7 @@ jobs:
           # QPM
           TMP_DIR="/tmp/qpm"
           mkdir -p "$TMP_DIR"
-          curl -L "https://github.com/QuestPackageManager/QPM.CLI/releases/download/v1.5.2/qpm-linux-x64-static.zip" -o "$TMP_DIR/qpm.zip"
+          curl -L "https://github.com/QuestPackageManager/QPM.CLI/releases/download/v1.5.8/qpm-linux-x64.zip" -o "$TMP_DIR/qpm.zip"
           unzip -o "$TMP_DIR/qpm.zip" -d "$TMP_DIR"
           QPM_BIN=$(find "$TMP_DIR" -type f -name qpm)
           chmod +x "$QPM_BIN"
