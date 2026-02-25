@@ -42,8 +42,13 @@ void SpotifyPlaylistTableViewCell::setPlaylist(const spotify::Playlist& playlist
     songCountTextView_->set_text(std::format("{} tracks", playlist_->totalItemCount));
 
     // Loading sprite
-    const UnityW<UnityEngine::Sprite> placeholderSprite = Utils::getPlaylistPlaceholderSprite();
-    image_->set_sprite(placeholderSprite);
+    if (playlist_->id == spotify::PLAYLIST_ID_LIKED_SONGS) {
+        const UnityW<UnityEngine::Sprite> placeholderSprite = Utils::getLikedSongsPlaylistPlaceholderSprite();
+        image_->set_sprite(placeholderSprite);
+    } else {
+        const UnityW<UnityEngine::Sprite> placeholderSprite = Utils::getPlaylistPlaceholderSprite();
+        image_->set_sprite(placeholderSprite);
+    }
 
     // Load cover image
     if (!playlist_->imageUrl.empty()) {

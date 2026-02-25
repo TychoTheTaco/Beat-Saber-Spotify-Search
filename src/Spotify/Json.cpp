@@ -65,8 +65,18 @@ Track getTrackFromJson(const rapidjson::Value& json) {
 PlaylistTrack getPlaylistTrackFromJson(const rapidjson::Value& json) {
     PlaylistTrack playlistTrack;
 
+    const rapidjson::Value* trackJson = nullptr;
+    try {
+        trackJson = &getObject(json, "item");
+    } catch (const std::exception& exception) {
+        trackJson = &getObject(json, "track");
+    }
+    if (!trackJson) {
+        throw std::runtime_error("Failed to find track JSON in playlist track");
+    }
+
     // Track
-    const Track track = getTrackFromJson(json["track"]);
+    const Track track = getTrackFromJson(*trackJson);
     playlistTrack.id = track.id;
     playlistTrack.name = track.name;
     playlistTrack.artists = track.artists;
@@ -105,7 +115,7 @@ std::vector<Image> getImagesFromJson(const rapidjson::Value& json) {
         Image image{"", -1, -1};
 
         // URL
-        image.url = imageJson["url"].GetString();
+        image.url = getString(imageJson, "url");
 
         // Width
         static constexpr const char* const JSON_KEY_WIDTH = "width";
@@ -179,6 +189,17 @@ std::string getString(const rapidjson::Value& json, const std::string& key) {
         throw std::runtime_error(std::format("Value for key was empty: {}", key));
     }
     return value;
+}
+
+const rapidjson::Value& getObject(const rapidjson::Value& json, const std::string& key) {
+    if (!json.HasMember(key)) {
+        throw std::runtime_error(std::format("Missing key: {}", key));
+    }
+    const auto& jsonValue = json[key];
+    if (!jsonValue.IsObject()) {
+        throw std::runtime_error(std::format("Unexpected type for key: {}", key));
+    }
+    return jsonValue;
 }
 
 } // namespace spotify::json

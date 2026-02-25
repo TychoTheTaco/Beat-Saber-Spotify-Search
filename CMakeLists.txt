@@ -3,8 +3,6 @@ cmake_minimum_required(VERSION 3.22)
 option(QUEST "Build for quest" ON)
 
 # Globals
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED 23)
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -27,17 +25,13 @@ endif ()
 add_compile_definitions(HOT_RELOAD=${HOT_RELOAD})
 message(STATUS "HOT_RELOAD = ${HOT_RELOAD}")
 
-if (${CMAKE_BUILD_TYPE} STREQUAL "RELEASE" OR ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo" OR ${CMAKE_BUILD_TYPE} STREQUAL "MinSizeRel")
+if (${CMAKE_BUILD_TYPE} MATCHES "^(Release|RelWithDebInfo|MinSizeRel)$")
     # Better optimizations
     add_compile_options(-O3)
 
     # LTO
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
     add_compile_options(-flto)
-endif ()
-
-if (${CMAKE_BUILD_TYPE} STREQUAL "DEBUG" OR ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
-    add_compile_options(-g)
 endif ()
 
 # Targets
@@ -69,6 +63,7 @@ add_library(
         ${cpp_file_list}
         ${c_file_list}
 )
+target_compile_features(${CMAKE_PROJECT_NAME} PRIVATE cxx_std_23)
 
 add_subdirectory(third-party)
 

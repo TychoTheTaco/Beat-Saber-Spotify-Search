@@ -2,11 +2,7 @@
 
 #include <string>
 
-#include "web-utils/shared/WebUtils.hpp"
-
-#include "Configuration.hpp"
 #include "Log.hpp"
-#include "Spotify/Image.hpp"
 #include "Spotify/Playlist.hpp"
 #include "Spotify/Track.hpp"
 #include "Spotify/User.hpp"
@@ -29,7 +25,7 @@ class Client {
     std::vector<Playlist> getPlaylists();
     Playlist getLikedSongsPlaylist();
 
-    bool isAuthenticated();
+    bool isAuthenticated() const;
 
     bool login(const std::string& clientId, const std::string& clientSecret, const std::string& redirectUri, const std::string& authorizationCode);
     void login(const std::filesystem::path& path);
@@ -39,9 +35,7 @@ class Client {
 
     User getUser();
 
-    static std::filesystem::path getAuthTokenPath() {
-        return SpotifySearch::getDataDirectory() / "spotifyAuthToken.json";
-    }
+    static std::filesystem::path getAuthTokenPath();
 
     void saveAuthTokensToFile(const std::filesystem::path& path, std::string_view password = "");
 
@@ -89,7 +83,7 @@ class Client {
         for (size_t i = 1; i < chunkCount; ++i) {
             std::promise<std::vector<T>> promise;
             futures.push_back(promise.get_future());
-            std::thread([i, &items, &producer, &parser, promise = std::move(promise)]() mutable {
+            std::thread([i, &producer, &parser, promise = std::move(promise)]() mutable {
                 try {
                     const rapidjson::Document& document = producer(MAX_CHUNK_SIZE * i, MAX_CHUNK_SIZE);
                     const std::vector<T> localTracks = json::getArray<T>(document, "items", parser);

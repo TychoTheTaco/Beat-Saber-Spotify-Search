@@ -4,6 +4,8 @@
 
 namespace spotify {
 
+constexpr const char* const PLAYLIST_ID_LIKED_SONGS = "liked-songs";
+
 struct Playlist {
     std::string id;
     std::string name;

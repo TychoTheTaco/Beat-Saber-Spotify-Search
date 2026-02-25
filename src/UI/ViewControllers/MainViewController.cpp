@@ -161,7 +161,7 @@ void MainViewController::reloadSpotifyTrackListView() {
         // Load tracks
         std::vector<spotify::PlaylistTrack> tracks;
         try {
-            if (selectedPlaylist_->id == "liked-songs") {
+            if (selectedPlaylist_->id == spotify::PLAYLIST_ID_LIKED_SONGS) {
                 tracks = spotifyClient->getLikedSongs();
             } else {
                 tracks = spotifyClient->getPlaylistTracks(selectedPlaylist_->id);
@@ -359,8 +359,8 @@ void MainViewController::ctor() {
     customSongFilter_ = CustomSongFilter();
     isShowingAllTracksByArtist_ = false;
     isShowingDownloadedMaps_ = true;
-    currentSongFilter_ = SpotifySearch::Filter::DEFAULT_SONG_FILTER_FUNCTION;
-    currentSongScore_ = SpotifySearch::Filter::DEFAULT_SONG_SCORE_FUNCTION;
+    currentSongFilter_ = Filter::DEFAULT_SONG_FILTER_FUNCTION;
+    currentSongScore_ = Filter::DEFAULT_SONG_SCORE_FUNCTION;
 }
 
 void MainViewController::showSpotifyTrackLoadingIndicator() {
@@ -643,7 +643,9 @@ void MainViewController::doSongSearch(const spotify::Track& track) {
 
     isSearchInProgress_ = true;
     const CustomSongFilter customSongFilter = customSongFilter_;
-    std::thread([this, track, customSongFilter]() {
+    const Filter::SongFilterFunction songFilterFunction = currentSongFilter_;
+    const Filter::SongScoreFunction songScoreFunction = currentSongScore_;
+    std::thread([this, track, customSongFilter, songFilterFunction, songScoreFunction]() {
         SongDetailsCache::SongDetails* songDetails = SongDetailsCache::SongDetails::Init().get();
 
         auto filterStage1StartTime = std::chrono::high_resolution_clock::now();
@@ -673,8 +675,8 @@ void MainViewController::doSongSearch(const spotify::Track& track) {
         songs.erase(
             std::remove_if(
                 songs.begin(), songs.end(),
-                [this, track](const SongDetailsCache::Song* song) {
-                    return !currentSongFilter_(song, track);
+                [songFilterFunction, track](const SongDetailsCache::Song* song) {
+                    return !songFilterFunction(song, track);
                 }),
             songs.end());
         SpotifySearch::Log.info("Filter stage 2: songs = {} time = {} ms.", songs.size(), std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - filterStage2StartTime).count());
@@ -682,7 +684,7 @@ void MainViewController::doSongSearch(const spotify::Track& track) {
         // Sort songs
         auto sortStartTime = std::chrono::high_resolution_clock::now();
         std::stable_sort(songs.begin(), songs.end(), [&](const SongDetailsCache::Song* const a, const SongDetailsCache::Song* const b) {
-            return currentSongScore_(track, *a) > currentSongScore_(track, *b);
+            return songScoreFunction(track, *a) > songScoreFunction(track, *b);
         });
         SpotifySearch::Log.info("Sort time: {} ms.", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - sortStartTime).count());
 
