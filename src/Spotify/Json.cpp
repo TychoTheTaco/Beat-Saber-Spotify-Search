@@ -143,11 +143,21 @@ std::vector<Image> getImagesFromJson(const rapidjson::Value& json) {
 Playlist getPlaylistFromJson(const rapidjson::Value& json) {
     Playlist playlist;
 
-    playlist.id = json["id"].GetString();
-    playlist.name = json["name"].GetString();
+    playlist.id = getString(json, "id");
+    playlist.name = getString(json, "name");
 
-    playlist.tracksUrl = json["tracks"]["href"].GetString();
-    playlist.totalItemCount = json["tracks"]["total"].GetUint64();
+    const rapidjson::Value* tracksJson = nullptr;
+    try {
+        tracksJson = &getObject(json, "items");
+    } catch (const std::exception& exception) {
+        tracksJson = &getObject(json, "tracks");
+    }
+    if (!tracksJson) {
+        throw std::runtime_error("Failed to find tracks JSON in playlist");
+    }
+
+    playlist.tracksUrl = getString(*tracksJson, "href");
+    playlist.totalItemCount = (*tracksJson)["total"].GetUint64();
 
     if (json.HasMember("images")) {
         if (json["images"].IsArray()) {
